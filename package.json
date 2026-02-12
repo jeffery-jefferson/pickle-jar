@@ -1,0 +1,114 @@
+{
+  "name": "pickle-jar",
+  "displayName": "Pickle Jar",
+  "description": "A toolbox for Gherkin step definitions with drag-and-drop support",
+  "version": "0.0.1",
+  "publisher": "pickle-jar",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": ["Testing"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/pickle-jar"
+  },
+  "activationEvents": ["onLanguage:feature"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "views": {
+      "explorer": [
+        {
+          "id": "pickleJar.stepDefinitions",
+          "name": "Pickle Jar",
+          "contextualTitle": "Step Definitions"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "pickleJar.insertStep",
+        "title": "Pickle Jar: Insert Step Definition",
+        "icon": "$(insert)"
+      },
+      {
+        "command": "pickleJar.refresh",
+        "title": "Pickle Jar: Refresh Step Definitions",
+        "icon": "$(refresh)"
+      }
+    ],
+    "menus": {
+      "view/item/context": [
+        {
+          "command": "pickleJar.insertStep",
+          "when": "view == pickleJar.stepDefinitions && viewItem == stepDefinition",
+          "group": "inline"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "pickleJar.refresh",
+          "when": "view == pickleJar.stepDefinitions",
+          "group": "navigation"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "pickleJar.stepDefinitions",
+        "contents": "No step definitions found in the workspace.\n[Refresh](command:pickleJar.refresh)"
+      }
+    ],
+    "configuration": {
+      "title": "Pickle Jar",
+      "properties": {
+        "pickleJar.stepDefinitionPatterns": {
+          "type": "array",
+          "default": [
+            "**/*.steps.ts",
+            "**/*.steps.js",
+            "**/step_definitions/**/*.ts",
+            "**/step_definitions/**/*.js",
+            "**/steps/**/*.ts",
+            "**/steps/**/*.js"
+          ],
+          "description": "Glob patterns for finding step definition files"
+        },
+        "pickleJar.excludePatterns": {
+          "type": "array",
+          "default": [
+            "**/node_modules/**",
+            "**/dist/**",
+            "**/out/**",
+            "**/.git/**"
+          ],
+          "description": "Patterns to exclude from step definition search"
+        },
+        "pickleJar.groupByType": {
+          "type": "boolean",
+          "default": true,
+          "description": "Group step definitions by type (Given/When/Then)"
+        },
+        "pickleJar.sortAlphabetically": {
+          "type": "boolean",
+          "default": true,
+          "description": "Sort step definitions alphabetically within groups"
+        },
+        "pickleJar.showFilePath": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show file path in step definition tooltip"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^18.x",
+    "@types/vscode": "^1.80.0",
+    "typescript": "^5.0.0"
+  }
+}
