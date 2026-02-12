@@ -45,6 +45,11 @@
         "command": "pickleJar.clearSearch",
         "title": "Pickle Jar: Clear Search Filter",
         "icon": "$(clear-all)"
+      },
+      {
+        "command": "pickleJar.goToDefinition",
+        "title": "Go to Definition",
+        "icon": "$(go-to-file)"
       }
     ],
     "menus": {
@@ -53,6 +58,11 @@
           "command": "pickleJar.insertStep",
           "when": "view == pickleJar.stepDefinitions && viewItem == stepDefinition",
           "group": "inline"
+        },
+        {
+          "command": "pickleJar.goToDefinition",
+          "when": "view == pickleJar.stepDefinitions && viewItem == stepDefinition",
+          "group": "navigation"
         }
       ],
       "view/title": [

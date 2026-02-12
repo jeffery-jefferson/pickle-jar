@@ -65,6 +65,28 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  const goToDefinitionCommand = vscode.commands.registerCommand(
+    'pickleJar.goToDefinition',
+    async (stepDef) => {
+      try {
+        const uri = vscode.Uri.file(stepDef.filePath);
+        const document = await vscode.workspace.openTextDocument(uri);
+        const editor = await vscode.window.showTextDocument(document);
+
+        // Navigate to the specific line
+        const lineNumber = stepDef.lineNumber - 1; // VSCode uses 0-based line numbers
+        const position = new vscode.Position(lineNumber, 0);
+        editor.selection = new vscode.Selection(position, position);
+        editor.revealRange(
+          new vscode.Range(position, position),
+          vscode.TextEditorRevealType.InCenter
+        );
+      } catch (error) {
+        vscode.window.showErrorMessage(`Failed to open file: ${error}`);
+      }
+    }
+  );
+
   // Start file watching
   const patterns = configManager.getStepDefinitionPatterns();
   watcher.activate(patterns, async () => {
@@ -96,6 +118,7 @@ export function activate(context: vscode.ExtensionContext) {
     refreshCommand,
     searchCommand,
     clearSearchCommand,
+    goToDefinitionCommand,
     watcher,
     configListener
   );
