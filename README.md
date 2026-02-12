@@ -4,7 +4,8 @@ A VSCode extension that makes writing Gherkin tests easier by providing a visual
 
 ## Features
 
-- **Step Definition Discovery**: Automatically scans your workspace for existing step definitions in TypeScript/JavaScript files
+- **Multi-Language Support**: Works with Cucumber.js (JavaScript/TypeScript) and SpecFlow (C#) projects
+- **Step Definition Discovery**: Automatically scans your workspace for existing step definitions
 - **Visual Toolbox**: Displays all step definitions in a sidebar panel organized by type (Given/When/Then)
 - **Easy Insertion**: Click to insert step definitions into your `.feature` files
 - **Smart Parameters**: Parameterized step definitions include snippet placeholders that you can tab through
@@ -22,7 +23,7 @@ A VSCode extension that makes writing Gherkin tests easier by providing a visual
 
 You can customize the extension behavior through VSCode settings:
 
-- `pickleJar.stepDefinitionPatterns`: Glob patterns for finding step definition files (default: `**/*.steps.ts`, `**/*.steps.js`, etc.)
+- `pickleJar.stepDefinitionPatterns`: Glob patterns for finding step definition files (default: `**/*.steps.ts`, `**/*.steps.js`, `**/*Steps.cs`, etc.)
 - `pickleJar.excludePatterns`: Patterns to exclude from search (default: `**/node_modules/**`, `**/dist/**`, etc.)
 - `pickleJar.groupByType`: Group step definitions by type (default: `true`)
 - `pickleJar.sortAlphabetically`: Sort step definitions alphabetically (default: `true`)
@@ -31,14 +32,19 @@ You can customize the extension behavior through VSCode settings:
 ## Requirements
 
 - VSCode 1.80.0 or higher
-- A project with Gherkin feature files and Cucumber/Cucumber.js step definitions
+- A project with Gherkin feature files and step definitions (Cucumber.js, SpecFlow, or compatible frameworks)
 
 ## Supported Step Definition Formats
 
-Pickle Jar supports the following step definition formats:
+Pickle Jar supports multiple BDD frameworks and languages:
 
-- Standard Cucumber.js: `Given('pattern', callback)`, `When(/regex/, callback)`, etc.
-- Decorator syntax: `@given('pattern')`, `@when(/regex/)`, etc.
+### Cucumber.js (JavaScript/TypeScript)
+- **Standard syntax**: `Given('pattern', callback)`, `When(/regex/, callback)`, etc.
+- **Decorator syntax**: `@given('pattern')`, `@when(/regex/)`, etc.
+
+### SpecFlow (C#)
+- **Attribute syntax**: `[Given("pattern")]`, `[When(@"pattern")]`, `[Then("pattern")]`, etc.
+- Supports both regular strings and verbatim string literals (`@"pattern"`)
 
 ## Development
 
