@@ -67,8 +67,18 @@ export function activate(context: vscode.ExtensionContext) {
 
   const goToDefinitionCommand = vscode.commands.registerCommand(
     'pickleJar.goToDefinition',
-    async (stepDef) => {
+    async (item) => {
       try {
+        // When invoked from context menu, we receive a StepDefinitionItem
+        // When invoked programmatically, we receive a StepDefinition
+        // Extract the actual StepDefinition
+        const stepDef = item.stepDefinition || item;
+
+        if (!stepDef || !stepDef.filePath) {
+          vscode.window.showErrorMessage('Invalid step definition');
+          return;
+        }
+
         const uri = vscode.Uri.file(stepDef.filePath);
         const document = await vscode.workspace.openTextDocument(uri);
         const editor = await vscode.window.showTextDocument(document);

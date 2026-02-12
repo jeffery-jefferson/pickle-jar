@@ -98,8 +98,11 @@ export class StepDefinitionScanner {
     for (let lineNumber = 0; lineNumber < lines.length; lineNumber++) {
       const line = lines[lineNumber];
 
-      // Try each pattern
+      // Try each pattern until we find a match
+      let foundMatch = false;
       for (const { pattern: regex, name: patternName } of STEP_DEFINITION_PATTERNS) {
+        if (foundMatch) break; // Skip remaining patterns if we already found a match
+
         // Reset regex lastIndex for global regex
         regex.lastIndex = 0;
         const matches = regex.exec(line);
@@ -128,6 +131,8 @@ export class StepDefinitionScanner {
             isRegex,
             rawMatch: matches[0]
           });
+
+          foundMatch = true; // Mark that we found a match for this line
         }
       }
     }
