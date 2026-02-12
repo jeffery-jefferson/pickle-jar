@@ -99,7 +99,7 @@ export class StepDefinitionScanner {
       const line = lines[lineNumber];
 
       // Try each pattern
-      for (const { pattern: regex } of STEP_DEFINITION_PATTERNS) {
+      for (const { pattern: regex, name: patternName } of STEP_DEFINITION_PATTERNS) {
         // Reset regex lastIndex for global regex
         regex.lastIndex = 0;
         const matches = regex.exec(line);
@@ -108,9 +108,12 @@ export class StepDefinitionScanner {
           const stepType = this.extractStepType(line);
           if (!stepType) continue;
 
-          const delimiter = matches[1]; // ', ", `, or /
-          const pattern = matches[2];
-          const isRegex = delimiter === '/';
+          // For C# SpecFlow patterns, the pattern is in matches[1]
+          // For JS/TS patterns, delimiter is matches[1] and pattern is matches[2]
+          const isCSharpPattern = patternName === 'specflow-csharp';
+          const pattern = isCSharpPattern ? matches[1] : matches[2];
+          const delimiter = isCSharpPattern ? '"' : matches[1];
+          const isRegex = !isCSharpPattern && delimiter === '/';
 
           const parameters = extractParameters(pattern, isRegex);
           const displayText = convertPatternToDisplayText(pattern, isRegex);
@@ -136,7 +139,8 @@ export class StepDefinitionScanner {
     const match = line.match(STEP_TYPE_PATTERN);
     if (!match) return null;
 
-    const type = match[0].replace('@', '');
+    // Clean up the matched text - remove @, [, and whitespace
+    const type = match[0].replace(/@|\[|\s/g, '');
     const normalized = type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
 
     if (['Given', 'When', 'Then', 'And', 'But'].includes(normalized)) {

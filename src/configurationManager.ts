@@ -7,10 +7,14 @@ export class ConfigurationManager {
     return this.config.get<string[]>('stepDefinitionPatterns', [
       '**/*.steps.ts',
       '**/*.steps.js',
+      '**/*Steps.cs',
+      '**/*StepDefinitions.cs',
       '**/step_definitions/**/*.ts',
       '**/step_definitions/**/*.js',
+      '**/StepDefinitions/**/*.cs',
       '**/steps/**/*.ts',
-      '**/steps/**/*.js'
+      '**/steps/**/*.js',
+      '**/Steps/**/*.cs'
     ]);
   }
 

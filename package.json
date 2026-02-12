@@ -67,12 +67,16 @@
           "default": [
             "**/*.steps.ts",
             "**/*.steps.js",
+            "**/*Steps.cs",
+            "**/*StepDefinitions.cs",
             "**/step_definitions/**/*.ts",
             "**/step_definitions/**/*.js",
+            "**/StepDefinitions/**/*.cs",
             "**/steps/**/*.ts",
-            "**/steps/**/*.js"
+            "**/steps/**/*.js",
+            "**/Steps/**/*.cs"
           ],
-          "description": "Glob patterns for finding step definition files"
+          "description": "Glob patterns for finding step definition files (supports Cucumber.js, SpecFlow C#, and more)"
         },
         "pickleJar.excludePatterns": {
           "type": "array",
