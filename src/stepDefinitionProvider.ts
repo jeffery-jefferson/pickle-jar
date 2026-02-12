@@ -41,7 +41,7 @@ export class StepDefinitionsProvider implements vscode.TreeDataProvider<StepDefi
       if (showFilePath) {
         const fileName = stepDef.filePath.split(/[\/\\]/).pop() || stepDef.filePath;
         treeItem.tooltip = `${stepDef.filePath}:${stepDef.lineNumber}\n\nPattern: ${stepDef.pattern}`;
-        treeItem.description = `(${fileName}:${stepDef.lineNumber})`;
+        treeItem.description = `(line ${stepDef.lineNumber})`;
       } else {
         treeItem.tooltip = `Pattern: ${stepDef.pattern}`;
       }
@@ -49,8 +49,16 @@ export class StepDefinitionsProvider implements vscode.TreeDataProvider<StepDefi
       treeItem.contextValue = 'stepDefinition';
       treeItem.iconPath = new vscode.ThemeIcon('symbol-key');
     } else {
-      // Group node
-      treeItem.iconPath = new vscode.ThemeIcon('folder');
+      // Group node (file or type)
+      // File nodes have labels like "filename.cs (count)"
+      // Type nodes have labels like "Given (count)"
+      const isFileNode = element.label.match(/\.(cs|ts|js)\s*\(/);
+
+      if (isFileNode) {
+        treeItem.iconPath = new vscode.ThemeIcon('file');
+      } else {
+        treeItem.iconPath = new vscode.ThemeIcon('symbol-namespace');
+      }
     }
 
     return treeItem;
@@ -76,39 +84,67 @@ export class StepDefinitionsProvider implements vscode.TreeDataProvider<StepDefi
       return this.createStepDefinitionItems(this.stepDefinitions, sortAlphabetically);
     }
 
-    // Group by step type
-    const groups = new Map<string, StepDefinition[]>();
+    // Group by file first, then by step type
+    const fileGroups = new Map<string, StepDefinition[]>();
+
+    // Group all step definitions by file
+    this.stepDefinitions.forEach(stepDef => {
+      const fileName = stepDef.filePath.split(/[\/\\]/).pop() || stepDef.filePath;
+      if (!fileGroups.has(fileName)) {
+        fileGroups.set(fileName, []);
+      }
+      fileGroups.get(fileName)!.push(stepDef);
+    });
+
+    // Create file nodes with nested step type groups
+    const fileNodes: StepDefinitionItem[] = [];
     const orderedTypes = ['Given', 'When', 'Then', 'And', 'But'];
 
-    // Initialize groups
-    orderedTypes.forEach(type => groups.set(type, []));
+    // Sort file names alphabetically
+    const sortedFileNames = Array.from(fileGroups.keys()).sort();
 
-    // Populate groups
-    this.stepDefinitions.forEach(stepDef => {
-      const group = groups.get(stepDef.type);
-      if (group) {
-        group.push(stepDef);
-      }
+    sortedFileNames.forEach(fileName => {
+      const stepDefs = fileGroups.get(fileName)!;
+
+      // Group step definitions within this file by type
+      const typeGroups = new Map<string, StepDefinition[]>();
+      orderedTypes.forEach(type => typeGroups.set(type, []));
+
+      stepDefs.forEach(stepDef => {
+        const group = typeGroups.get(stepDef.type);
+        if (group) {
+          group.push(stepDef);
+        }
+      });
+
+      // Create type nodes for this file
+      const typeNodes: StepDefinitionItem[] = [];
+
+      orderedTypes.forEach(type => {
+        const typeStepDefs = typeGroups.get(type) || [];
+        if (typeStepDefs.length > 0) {
+          const children = this.createStepDefinitionItems(typeStepDefs, sortAlphabetically);
+          typeNodes.push(
+            new StepDefinitionItem(
+              `${type} (${typeStepDefs.length})`,
+              undefined,
+              children
+            )
+          );
+        }
+      });
+
+      // Create file node with type nodes as children
+      fileNodes.push(
+        new StepDefinitionItem(
+          `${fileName} (${stepDefs.length})`,
+          undefined,
+          typeNodes
+        )
+      );
     });
 
-    // Create group nodes
-    const groupNodes: StepDefinitionItem[] = [];
-
-    orderedTypes.forEach(type => {
-      const stepDefs = groups.get(type) || [];
-      if (stepDefs.length > 0) {
-        const children = this.createStepDefinitionItems(stepDefs, sortAlphabetically);
-        groupNodes.push(
-          new StepDefinitionItem(
-            `${type} (${stepDefs.length})`,
-            undefined,
-            children
-          )
-        );
-      }
-    });
-
-    return groupNodes;
+    return fileNodes;
   }
 
   private createStepDefinitionItems(
