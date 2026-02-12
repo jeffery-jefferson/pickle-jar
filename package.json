@@ -35,6 +35,16 @@
         "command": "pickleJar.refresh",
         "title": "Pickle Jar: Refresh Step Definitions",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "pickleJar.search",
+        "title": "Pickle Jar: Search Step Definitions",
+        "icon": "$(search)"
+      },
+      {
+        "command": "pickleJar.clearSearch",
+        "title": "Pickle Jar: Clear Search Filter",
+        "icon": "$(clear-all)"
       }
     ],
     "menus": {
@@ -47,9 +57,19 @@
       ],
       "view/title": [
         {
+          "command": "pickleJar.search",
+          "when": "view == pickleJar.stepDefinitions",
+          "group": "navigation@1"
+        },
+        {
+          "command": "pickleJar.clearSearch",
+          "when": "view == pickleJar.stepDefinitions",
+          "group": "navigation@2"
+        },
+        {
           "command": "pickleJar.refresh",
           "when": "view == pickleJar.stepDefinitions",
-          "group": "navigation"
+          "group": "navigation@3"
         }
       ]
     },

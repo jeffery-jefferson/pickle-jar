@@ -7,12 +7,38 @@ export class StepDefinitionsProvider implements vscode.TreeDataProvider<StepDefi
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
   private stepDefinitions: StepDefinition[] = [];
+  private searchFilter: string = '';
 
   constructor(private scanner: StepDefinitionScanner) {}
 
   async refresh(): Promise<void> {
     this.stepDefinitions = await this.scanner.scanWorkspace();
     this._onDidChangeTreeData.fire(undefined);
+  }
+
+  setFilter(filter: string): void {
+    this.searchFilter = filter.toLowerCase().trim();
+    this._onDidChangeTreeData.fire(undefined);
+  }
+
+  clearFilter(): void {
+    this.searchFilter = '';
+    this._onDidChangeTreeData.fire(undefined);
+  }
+
+  private matchesFilter(stepDef: StepDefinition): boolean {
+    if (!this.searchFilter) {
+      return true;
+    }
+
+    const searchLower = this.searchFilter;
+    const displayTextLower = stepDef.displayText.toLowerCase();
+    const patternLower = stepDef.pattern.toLowerCase();
+    const fileNameLower = stepDef.filePath.toLowerCase();
+
+    return displayTextLower.includes(searchLower) ||
+           patternLower.includes(searchLower) ||
+           fileNameLower.includes(searchLower);
   }
 
   getTreeItem(element: StepDefinitionItem): vscode.TreeItem {
@@ -79,16 +105,19 @@ export class StepDefinitionsProvider implements vscode.TreeDataProvider<StepDefi
     const groupByType = config.get<boolean>('groupByType', true);
     const sortAlphabetically = config.get<boolean>('sortAlphabetically', true);
 
+    // Filter step definitions based on search
+    const filteredSteps = this.stepDefinitions.filter(stepDef => this.matchesFilter(stepDef));
+
     if (!groupByType) {
       // Return flat list
-      return this.createStepDefinitionItems(this.stepDefinitions, sortAlphabetically);
+      return this.createStepDefinitionItems(filteredSteps, sortAlphabetically);
     }
 
     // Group by file first, then by step type
     const fileGroups = new Map<string, StepDefinition[]>();
 
     // Group all step definitions by file
-    this.stepDefinitions.forEach(stepDef => {
+    filteredSteps.forEach(stepDef => {
       const fileName = stepDef.filePath.split(/[\/\\]/).pop() || stepDef.filePath;
       if (!fileGroups.has(fileName)) {
         fileGroups.set(fileName, []);

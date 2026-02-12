@@ -38,6 +38,33 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  const searchCommand = vscode.commands.registerCommand(
+    'pickleJar.search',
+    async () => {
+      const searchTerm = await vscode.window.showInputBox({
+        prompt: 'Search step definitions',
+        placeHolder: 'Type to filter step definitions...',
+        value: ''
+      });
+
+      if (searchTerm !== undefined) {
+        if (searchTerm === '') {
+          provider.clearFilter();
+        } else {
+          provider.setFilter(searchTerm);
+        }
+      }
+    }
+  );
+
+  const clearSearchCommand = vscode.commands.registerCommand(
+    'pickleJar.clearSearch',
+    () => {
+      provider.clearFilter();
+      vscode.window.showInformationMessage('Pickle Jar: Search filter cleared');
+    }
+  );
+
   // Start file watching
   const patterns = configManager.getStepDefinitionPatterns();
   watcher.activate(patterns, async () => {
@@ -67,6 +94,8 @@ export function activate(context: vscode.ExtensionContext) {
     treeView,
     insertStepCommand,
     refreshCommand,
+    searchCommand,
+    clearSearchCommand,
     watcher,
     configListener
   );
