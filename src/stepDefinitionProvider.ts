@@ -8,8 +8,17 @@ export class StepDefinitionsProvider implements vscode.TreeDataProvider<StepDefi
 
   private stepDefinitions: StepDefinition[] = [];
   private searchFilter: string = '';
+  private _message: string | undefined;
 
   constructor(private scanner: StepDefinitionScanner) {}
+
+  get message(): string | undefined {
+    return this._message;
+  }
+
+  set message(value: string | undefined) {
+    this._message = value;
+  }
 
   async refresh(): Promise<void> {
     this.stepDefinitions = await this.scanner.scanWorkspace();
@@ -18,12 +27,22 @@ export class StepDefinitionsProvider implements vscode.TreeDataProvider<StepDefi
 
   setFilter(filter: string): void {
     this.searchFilter = filter.toLowerCase().trim();
+    if (this.searchFilter) {
+      this.message = `🔍 Filtering: "${this.searchFilter}"`;
+    } else {
+      this.message = undefined;
+    }
     this._onDidChangeTreeData.fire(undefined);
   }
 
   clearFilter(): void {
     this.searchFilter = '';
+    this.message = undefined;
     this._onDidChangeTreeData.fire(undefined);
+  }
+
+  getFilter(): string {
+    return this.searchFilter;
   }
 
   private matchesFilter(stepDef: StepDefinition): boolean {

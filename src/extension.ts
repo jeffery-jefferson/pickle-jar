@@ -21,6 +21,11 @@ export function activate(context: vscode.ExtensionContext) {
     showCollapseAll: true
   });
 
+  // Update tree view message when filter changes
+  provider.onDidChangeTreeData(() => {
+    treeView.message = provider.message;
+  });
+
   // Register commands
   const insertStepCommand = vscode.commands.registerCommand(
     'pickleJar.insertStep',
@@ -41,12 +46,23 @@ export function activate(context: vscode.ExtensionContext) {
   const searchCommand = vscode.commands.registerCommand(
     'pickleJar.search',
     async () => {
+      const currentFilter = provider.getFilter();
       const searchTerm = await vscode.window.showInputBox({
-        prompt: 'Search step definitions',
+        prompt: 'Search step definitions (leave empty to clear filter)',
         placeHolder: 'Type to filter step definitions...',
-        value: ''
+        value: currentFilter,
+        validateInput: (value) => {
+          // Update the tree in real-time as user types
+          if (value === '') {
+            provider.clearFilter();
+          } else {
+            provider.setFilter(value);
+          }
+          return null; // No validation errors
+        }
       });
 
+      // Final update when user presses Enter or cancels
       if (searchTerm !== undefined) {
         if (searchTerm === '') {
           provider.clearFilter();
