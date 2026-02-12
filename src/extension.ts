@@ -58,7 +58,9 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   // Initial scan
-  provider.refresh();
+  provider.refresh().catch(error => {
+    console.error('[Pickle Jar] Error during initial scan:', error);
+  });
 
   // Register disposables
   context.subscriptions.push(

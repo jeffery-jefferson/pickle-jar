@@ -16,12 +16,28 @@ export class StepDefinitionScanner {
       return allStepDefs;
     }
 
+    // Extract base folder names from patterns like **/node_modules/**
+    const baseFolders = excludePatterns.map(p =>
+      p.replace(/^\*\*\//, '').replace(/\/\*\*$/, '')
+    );
+
+    // Create proper combined exclude pattern
+    const excludePattern = baseFolders.length > 0
+      ? `**/{${baseFolders.join(',')}}/**`
+      : undefined;
+
+    console.log(`[Pickle Jar] Starting workspace scan with ${patterns.length} patterns`);
+    console.log(`[Pickle Jar] Exclude pattern: ${excludePattern}`);
+
     for (const folder of vscode.workspace.workspaceFolders) {
       for (const pattern of patterns) {
+        console.log(`[Pickle Jar] Searching pattern: ${pattern} in ${folder.name}`);
         const files = await vscode.workspace.findFiles(
           new vscode.RelativePattern(folder, pattern),
-          `{${excludePatterns.join(',')}}`
+          excludePattern
         );
+
+        console.log(`[Pickle Jar] Found ${files.length} files for pattern: ${pattern}`);
 
         for (const fileUri of files) {
           const stepDefs = await this.scanFile(fileUri);
@@ -30,6 +46,7 @@ export class StepDefinitionScanner {
       }
     }
 
+    console.log(`[Pickle Jar] Total step definitions found: ${allStepDefs.length}`);
     return allStepDefs;
   }
 

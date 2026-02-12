@@ -13,7 +13,7 @@
     "type": "git",
     "url": "https://github.com/your-username/pickle-jar"
   },
-  "activationEvents": ["onLanguage:feature"],
+  "activationEvents": ["onLanguage:feature", "onStartupFinished"],
   "main": "./out/extension.js",
   "contributes": {
     "views": {
