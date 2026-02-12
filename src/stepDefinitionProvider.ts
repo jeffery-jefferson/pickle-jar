@@ -61,20 +61,15 @@ export class StepDefinitionsProvider implements vscode.TreeDataProvider<StepDefi
         arguments: [stepDef]
       };
 
-      // Set resourceUri to enable Ctrl+Click navigation
-      treeItem.resourceUri = vscode.Uri.file(stepDef.filePath).with({
-        fragment: `L${stepDef.lineNumber}`
-      });
-
       const config = vscode.workspace.getConfiguration('pickleJar');
       const showFilePath = config.get<boolean>('showFilePath', true);
 
       if (showFilePath) {
         const fileName = stepDef.filePath.split(/[\/\\]/).pop() || stepDef.filePath;
-        treeItem.tooltip = `${stepDef.filePath}:${stepDef.lineNumber}\n\nPattern: ${stepDef.pattern}\n\nCtrl+Click to go to definition`;
+        treeItem.tooltip = `${stepDef.filePath}:${stepDef.lineNumber}\n\nPattern: ${stepDef.pattern}\n\nRight-click → Go to Definition to open source`;
         treeItem.description = `(line ${stepDef.lineNumber})`;
       } else {
-        treeItem.tooltip = `Pattern: ${stepDef.pattern}\n\nCtrl+Click to go to definition`;
+        treeItem.tooltip = `Pattern: ${stepDef.pattern}\n\nRight-click → Go to Definition to open source`;
       }
 
       treeItem.contextValue = 'stepDefinition';
