@@ -4,6 +4,7 @@
   "description": "A toolbox for Gherkin step definitions with drag-and-drop support",
   "version": "0.0.1",
   "publisher": "pickle-jar",
+  "license": "MIT",
   "engines": {
     "vscode": "^1.80.0"
   },
