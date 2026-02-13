@@ -19,16 +19,12 @@ export function activate(context: vscode.ExtensionContext) {
   const watcher = new StepDefinitionWatcher();
   const goToDefinition = new GoToDefinitionCommand();
   const searchBarProvider = new SearchBarViewProvider(provider);
-  const searchCommand = new SearchCommand(provider, searchBarProvider);
+  const searchCommand = new SearchCommand(searchBarProvider);
   const copyStepCommand = new CopyStepCommand();
 
   const treeView = vscode.window.createTreeView('pickleJar.stepDefinitions', {
     treeDataProvider: provider,
     showCollapseAll: true
-  });
-
-  provider.onDidChangeTreeData(() => {
-    treeView.message = provider.message;
   });
 
   watcher.activate(configManager.getStepDefinitionPatterns(), () => provider.refresh());

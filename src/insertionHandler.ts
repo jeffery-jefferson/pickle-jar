@@ -35,7 +35,12 @@ export class InsertionHandler implements vscode.Disposable {
       return;
     }
 
-    if (!editor.document.fileName.endsWith('.feature')) {
+    const isFeatureFile =
+      editor.document.fileName.endsWith('.feature') ||
+      editor.document.languageId === 'feature' ||
+      editor.document.languageId === 'cucumber';
+
+    if (!isFeatureFile) {
       vscode.window.showWarningMessage(
         'Pickle Jar: Please open a .feature file to insert step definitions'
       );

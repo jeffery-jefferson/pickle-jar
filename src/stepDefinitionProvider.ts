@@ -18,8 +18,6 @@ export class StepDefinitionsProvider implements vscode.TreeDataProvider<StepDefi
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
   private stepDefinitions: StepDefinition[] = [];
-  private searchFilter = '';
-  private _message: string | undefined;
 
   constructor(
     private scanner: StepDefinitionScanner,
@@ -27,42 +25,20 @@ export class StepDefinitionsProvider implements vscode.TreeDataProvider<StepDefi
     private config: ConfigurationManager
   ) {}
 
-  get message(): string | undefined {
-    return this._message;
-  }
-
   async refresh(): Promise<void> {
     this.stepDefinitions = await this.scanner.scanWorkspace();
-    this.updateMessage();
     this._onDidChangeTreeData.fire(undefined);
   }
 
-  setFilter(filter: string): void {
-    this.searchFilter = filter.toLowerCase().trim();
-    this.updateMessage();
-    this._onDidChangeTreeData.fire(undefined);
-  }
-
-  clearFilter(): void {
-    this.searchFilter = '';
-    this._message = undefined;
-    this._onDidChangeTreeData.fire(undefined);
-  }
-
-  getFilter(): string {
-    return this.searchFilter;
-  }
-
-  private updateMessage(): void {
-    if (!this.searchFilter) {
-      this._message = undefined;
-      return;
-    }
-
-    const results = this.treeBuilder.buildTree(this.stepDefinitions, this.searchFilter);
-    this._message = results.length === 0
-      ? `No steps matching "${this.searchFilter}"`
-      : `🔍 Filtering: "${this.searchFilter}"`;
+  /** Return step definitions matching a query (used by the search bar webview). */
+  searchSteps(query: string): StepDefinition[] {
+    if (!query) return [];
+    const q = query.toLowerCase().trim();
+    return this.stepDefinitions.filter(s =>
+      s.pattern.toLowerCase().includes(q) ||
+      s.displayText.toLowerCase().includes(q) ||
+      s.filePath.toLowerCase().includes(q)
+    );
   }
 
   getTreeItem(element: StepDefinitionItem): vscode.TreeItem {
@@ -124,6 +100,6 @@ export class StepDefinitionsProvider implements vscode.TreeDataProvider<StepDefi
     if (element) {
       return Promise.resolve(element.children || []);
     }
-    return Promise.resolve(this.treeBuilder.buildTree(this.stepDefinitions, this.searchFilter));
+    return Promise.resolve(this.treeBuilder.buildTree(this.stepDefinitions, ''));
   }
 }
