@@ -5,6 +5,7 @@
   "version": "0.0.1",
   "publisher": "pickle-jar",
   "license": "MIT",
+  "icon": "resources/icons/pickle-jar.svg",
   "engines": {
     "vscode": "^1.80.0"
   },
@@ -16,12 +17,21 @@
   "activationEvents": ["onLanguage:feature", "onStartupFinished"],
   "main": "./out/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "pickleJar",
+          "title": "Pickle Jar",
+          "icon": "resources/icons/pickle-jar-activitybar.svg"
+        }
+      ]
+    },
     "views": {
-      "explorer": [
+      "pickleJar": [
         {
           "id": "pickleJar.stepDefinitions",
-          "name": "Pickle Jar",
-          "contextualTitle": "Step Definitions"
+          "name": "Step Definitions",
+          "contextualTitle": "Pickle Jar"
         }
       ]
     },
@@ -50,6 +60,11 @@
         "command": "pickleJar.goToDefinition",
         "title": "Go to Definition",
         "icon": "$(go-to-file)"
+      },
+      {
+        "command": "pickleJar.copyStep",
+        "title": "Copy Step Text",
+        "icon": "$(copy)"
       }
     ],
     "menus": {
@@ -57,12 +72,22 @@
         {
           "command": "pickleJar.insertStep",
           "when": "view == pickleJar.stepDefinitions && viewItem == stepDefinition",
-          "group": "inline"
+          "group": "inline@1"
+        },
+        {
+          "command": "pickleJar.copyStep",
+          "when": "view == pickleJar.stepDefinitions && viewItem == stepDefinition",
+          "group": "inline@2"
         },
         {
           "command": "pickleJar.goToDefinition",
           "when": "view == pickleJar.stepDefinitions && viewItem == stepDefinition",
-          "group": "navigation"
+          "group": "navigation@1"
+        },
+        {
+          "command": "pickleJar.copyStep",
+          "when": "view == pickleJar.stepDefinitions && viewItem == stepDefinition",
+          "group": "navigation@2"
         }
       ],
       "view/title": [

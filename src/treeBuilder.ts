@@ -69,10 +69,7 @@ export class TreeBuilder {
   }
 
   private toItems(stepDefs: StepDefinition[], sort: boolean): StepDefinitionItem[] {
-    const items = stepDefs.map(s => {
-      const label = s.displayText.replace(/\{[^}]+\}/g, '(.*)');
-      return new StepDefinitionItem(label, s);
-    });
+    const items = stepDefs.map(s => new StepDefinitionItem(s.displayText, s));
     return sort ? items.sort((a, b) => a.label.localeCompare(b.label)) : items;
   }
 

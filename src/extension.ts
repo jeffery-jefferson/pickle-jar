@@ -7,6 +7,7 @@ import { InsertionHandler } from './insertionHandler';
 import { StepDefinitionWatcher } from './fileWatcher';
 import { GoToDefinitionCommand } from './commands/goToDefinitionCommand';
 import { SearchCommand } from './commands/searchCommand';
+import { CopyStepCommand } from './commands/copyStepCommand';
 
 export function activate(context: vscode.ExtensionContext) {
   const configManager = new ConfigurationManager();
@@ -17,6 +18,7 @@ export function activate(context: vscode.ExtensionContext) {
   const watcher = new StepDefinitionWatcher();
   const goToDefinition = new GoToDefinitionCommand();
   const searchCommand = new SearchCommand(provider);
+  const copyStepCommand = new CopyStepCommand();
 
   const treeView = vscode.window.createTreeView('pickleJar.stepDefinitions', {
     treeDataProvider: provider,
@@ -43,6 +45,7 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.window.showInformationMessage('Pickle Jar: Search filter cleared');
     }),
     vscode.commands.registerCommand('pickleJar.goToDefinition', (item) => goToDefinition.execute(item)),
+    vscode.commands.registerCommand('pickleJar.copyStep', (item) => copyStepCommand.execute(item)),
     watcher,
     configManager.onConfigurationChanged(async () => {
       watcher.dispose();
