@@ -1,8 +1,12 @@
 import * as vscode from 'vscode';
 import { StepDefinitionsProvider } from '../stepDefinitionProvider';
+import { SearchBarViewProvider } from '../searchBarViewProvider';
 
 export class SearchCommand {
-  constructor(private provider: StepDefinitionsProvider) {}
+  constructor(
+    private provider: StepDefinitionsProvider,
+    private searchBar: SearchBarViewProvider
+  ) {}
 
   async execute(): Promise<void> {
     const searchTerm = await vscode.window.showInputBox({
@@ -15,6 +19,7 @@ export class SearchCommand {
         } else {
           this.provider.setFilter(value);
         }
+        this.searchBar.setQuery(value);
         return null;
       }
     });
@@ -22,8 +27,10 @@ export class SearchCommand {
     if (searchTerm !== undefined) {
       if (searchTerm === '') {
         this.provider.clearFilter();
+        this.searchBar.clearInput();
       } else {
         this.provider.setFilter(searchTerm);
+        this.searchBar.setQuery(searchTerm);
       }
     }
   }

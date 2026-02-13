@@ -5,14 +5,22 @@ import { CucumberParameterExtractor } from './cucumberParameterExtractor';
 const regexExtractor = new RegexParameterExtractor();
 const cucumberExtractor = new CucumberParameterExtractor();
 
-export function extractParameters(pattern: string, isRegex: boolean): StepParameter[] {
+export function extractParameters(
+  pattern: string,
+  isRegex: boolean,
+  signatureNames: string[] = []
+): StepParameter[] {
   return isRegex
-    ? regexExtractor.extract(pattern)
-    : cucumberExtractor.extract(pattern);
+    ? regexExtractor.extract(pattern, signatureNames)
+    : cucumberExtractor.extract(pattern, signatureNames);
 }
 
-export function convertPatternToDisplayText(pattern: string, isRegex: boolean): string {
+export function convertPatternToDisplayText(
+  pattern: string,
+  isRegex: boolean,
+  signatureNames: string[] = []
+): string {
   return isRegex
-    ? regexExtractor.convertToDisplayText(pattern)
-    : pattern;
+    ? regexExtractor.convertToDisplayText(pattern, signatureNames)
+    : cucumberExtractor.convertToDisplayText(pattern, signatureNames);
 }

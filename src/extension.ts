@@ -8,6 +8,7 @@ import { StepDefinitionWatcher } from './fileWatcher';
 import { GoToDefinitionCommand } from './commands/goToDefinitionCommand';
 import { SearchCommand } from './commands/searchCommand';
 import { CopyStepCommand } from './commands/copyStepCommand';
+import { SearchBarViewProvider } from './searchBarViewProvider';
 
 export function activate(context: vscode.ExtensionContext) {
   const configManager = new ConfigurationManager();
@@ -17,7 +18,8 @@ export function activate(context: vscode.ExtensionContext) {
   const insertionHandler = new InsertionHandler();
   const watcher = new StepDefinitionWatcher();
   const goToDefinition = new GoToDefinitionCommand();
-  const searchCommand = new SearchCommand(provider);
+  const searchBarProvider = new SearchBarViewProvider(provider);
+  const searchCommand = new SearchCommand(provider, searchBarProvider);
   const copyStepCommand = new CopyStepCommand();
 
   const treeView = vscode.window.createTreeView('pickleJar.stepDefinitions', {
@@ -33,6 +35,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     treeView,
+    vscode.window.registerWebviewViewProvider(SearchBarViewProvider.viewType, searchBarProvider),
     vscode.commands.registerCommand('pickleJar.insertStep', (s) => insertionHandler.insertStepDefinition(s)),
     vscode.commands.registerCommand('pickleJar.refresh', async () => {
       scanner.clearCache();
@@ -41,8 +44,7 @@ export function activate(context: vscode.ExtensionContext) {
     }),
     vscode.commands.registerCommand('pickleJar.search', () => searchCommand.execute()),
     vscode.commands.registerCommand('pickleJar.clearSearch', () => {
-      provider.clearFilter();
-      vscode.window.showInformationMessage('Pickle Jar: Search filter cleared');
+      searchBarProvider.clearInput();
     }),
     vscode.commands.registerCommand('pickleJar.goToDefinition', (item) => goToDefinition.execute(item)),
     vscode.commands.registerCommand('pickleJar.copyStep', (item) => copyStepCommand.execute(item)),

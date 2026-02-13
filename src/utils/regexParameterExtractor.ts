@@ -4,15 +4,16 @@ import { stripDelimiters, extractWords, toCamelCase } from './textUtils';
 const CAPTURE_GROUP_REGEX = /\([^)]*\)/g;
 
 export class RegexParameterExtractor {
-  extract(pattern: string): StepParameter[] {
+  extract(pattern: string, signatureNames: string[] = []): StepParameter[] {
     const parameters: StepParameter[] = [];
     const cleanPattern = stripDelimiters(pattern);
     let match;
     let index = 0;
 
     while ((match = CAPTURE_GROUP_REGEX.exec(cleanPattern)) !== null) {
+      const name = signatureNames[index] || this.inferName(cleanPattern, match.index);
       parameters.push({
-        name: this.inferName(cleanPattern, match.index),
+        name,
         type: this.inferType(match[0]),
         index: index++
       });
@@ -22,19 +23,22 @@ export class RegexParameterExtractor {
     return parameters;
   }
 
-  convertToDisplayText(pattern: string): string {
+  convertToDisplayText(pattern: string, signatureNames: string[] = []): string {
     let displayText = stripDelimiters(pattern);
     const cleanedPattern = displayText;
 
     const captureGroups: Array<{ match: string; offset: number; paramName: string }> = [];
     let match;
+    let index = 0;
 
     while ((match = CAPTURE_GROUP_REGEX.exec(cleanedPattern)) !== null) {
+      const paramName = signatureNames[index] || this.inferName(cleanedPattern, match.index);
       captureGroups.push({
         match: match[0],
         offset: match.index,
-        paramName: this.inferName(cleanedPattern, match.index)
+        paramName
       });
+      index++;
     }
 
     CAPTURE_GROUP_REGEX.lastIndex = 0;
@@ -44,7 +48,7 @@ export class RegexParameterExtractor {
       const group = captureGroups[i];
       displayText =
         displayText.substring(0, group.offset) +
-        `{${group.paramName}}` +
+        `<${group.paramName}>` +
         displayText.substring(group.offset + group.match.length);
     }
 
@@ -62,6 +66,7 @@ export class RegexParameterExtractor {
 
   /**
    * Infer a meaningful parameter name from surrounding context in a regex pattern.
+   * Used as a fallback when no method signature is available.
    *
    * Examples:
    * - "the http response is (.*)" → "httpResponse"

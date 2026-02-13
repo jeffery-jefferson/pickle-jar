@@ -76,8 +76,8 @@ export class TreeBuilder {
   private matchesFilter(stepDef: StepDefinition, filter: string): boolean {
     if (!filter) return true;
 
-    return stepDef.displayText.toLowerCase().includes(filter) ||
-           stepDef.pattern.toLowerCase().includes(filter) ||
+    return stepDef.pattern.toLowerCase().includes(filter) ||
+           stepDef.displayText.toLowerCase().includes(filter) ||
            stepDef.filePath.toLowerCase().includes(filter);
   }
 }

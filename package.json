@@ -5,7 +5,7 @@
   "version": "0.0.1",
   "publisher": "pickle-jar",
   "license": "MIT",
-  "icon": "resources/icons/pickle-jar.svg",
+  "icon": "resources/icons/pickle-jar.png",
   "engines": {
     "vscode": "^1.80.0"
   },
@@ -28,6 +28,11 @@
     },
     "views": {
       "pickleJar": [
+        {
+          "id": "pickleJar.searchBar",
+          "name": "Search",
+          "type": "webview"
+        },
         {
           "id": "pickleJar.stepDefinitions",
           "name": "Step Definitions",

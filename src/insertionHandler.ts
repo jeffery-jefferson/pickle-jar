@@ -55,9 +55,9 @@ export class InsertionHandler implements vscode.Disposable {
     let snippetText = `${stepDef.type} ${stepDef.displayText}`;
     let paramIndex = 0;
 
-    snippetText = snippetText.replace(/\{([^}]+)\}/g, (_match, paramName) => {
+    snippetText = snippetText.replace(/<([^>]+)>/g, (_match, paramName) => {
       paramIndex++;
-      return `\${${paramIndex}:(${paramName})}`;
+      return `\${${paramIndex}:<${paramName}>}`;
     });
 
     snippetText += '$0';
@@ -74,7 +74,7 @@ export class InsertionHandler implements vscode.Disposable {
     let searchStart = 0;
 
     for (const param of stepDef.parameters) {
-      const token = `(${param.name})`;
+      const token = `<${param.name}>`;
       const idx = lineText.indexOf(token, searchStart);
       if (idx === -1) continue;
 

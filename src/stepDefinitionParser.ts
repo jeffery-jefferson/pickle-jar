@@ -1,8 +1,10 @@
 import { StepDefinition, StepType } from './models/stepDefinition';
 import { STEP_DEFINITION_PATTERNS, STEP_TYPE_PATTERN } from './utils/patterns';
 import { extractParameters, convertPatternToDisplayText } from './utils/parameterExtractor';
+import { extractSignatureParamNames } from './utils/signatureParser';
 
 const VALID_STEP_TYPES: StepType[] = ['Given', 'When', 'Then', 'And', 'But'];
+const LOOKAHEAD_LINES = 5;
 
 export class StepDefinitionParser {
   parseFileContent(text: string, filePath: string): StepDefinition[] {
@@ -21,19 +23,24 @@ export class StepDefinitionParser {
         if (!stepType) continue;
 
         const isCSharp = patternName === 'specflow-csharp';
+        const language = isCSharp ? 'csharp' : 'javascript';
         const pattern = isCSharp ? matches[1] : matches[2];
         const delimiter = isCSharp ? '"' : matches[1];
 
         const hasRegexPatterns = /\([^)]*\)|\\d|\\w|\.\*|\.\+/.test(pattern);
         const isRegex = hasRegexPatterns || (!isCSharp && delimiter === '/');
 
+        // Look ahead at following lines for method/function signature
+        const followingLines = lines.slice(lineNumber + 1, lineNumber + 1 + LOOKAHEAD_LINES);
+        const signatureNames = extractSignatureParamNames(followingLines, language as 'csharp' | 'javascript');
+
         stepDefs.push({
           type: stepType,
           pattern,
-          displayText: convertPatternToDisplayText(pattern, isRegex),
+          displayText: convertPatternToDisplayText(pattern, isRegex, signatureNames),
           filePath,
           lineNumber: lineNumber + 1,
-          parameters: extractParameters(pattern, isRegex),
+          parameters: extractParameters(pattern, isRegex, signatureNames),
           isRegex,
           rawMatch: matches[0]
         });
