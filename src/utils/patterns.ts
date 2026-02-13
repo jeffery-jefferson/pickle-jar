@@ -22,4 +22,3 @@ export const STEP_DEFINITION_PATTERNS = [
 export const STEP_TYPE_PATTERN = /(?:Given|When|Then|And|But|given|when|then|and|but|@given|@when|@then|@and|@but|\[Given|\[When|\[Then|\[And|\[But)/;
 
 export const CUCUMBER_EXPRESSION_PARAM = /\{([^}]+)\}/g;
-export const REGEX_CAPTURE_GROUP = /\([^)]*\)/g;

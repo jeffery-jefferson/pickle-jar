@@ -1,155 +1,60 @@
 import * as vscode from 'vscode';
+import { ConfigurationManager } from './configurationManager';
 import { StepDefinitionScanner } from './stepDefinitionScanner';
+import { TreeBuilder } from './treeBuilder';
 import { StepDefinitionsProvider } from './stepDefinitionProvider';
 import { InsertionHandler } from './insertionHandler';
 import { StepDefinitionWatcher } from './fileWatcher';
-import { ConfigurationManager } from './configurationManager';
+import { GoToDefinitionCommand } from './commands/goToDefinitionCommand';
+import { SearchCommand } from './commands/searchCommand';
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log('Pickle Jar extension is now active');
-
-  // Initialize components
-  const scanner = new StepDefinitionScanner();
-  const provider = new StepDefinitionsProvider(scanner);
+  const configManager = new ConfigurationManager();
+  const scanner = new StepDefinitionScanner(configManager);
+  const treeBuilder = new TreeBuilder(configManager);
+  const provider = new StepDefinitionsProvider(scanner, treeBuilder, configManager);
   const insertionHandler = new InsertionHandler();
   const watcher = new StepDefinitionWatcher();
-  const configManager = new ConfigurationManager();
+  const goToDefinition = new GoToDefinitionCommand();
+  const searchCommand = new SearchCommand(provider);
 
-  // Register TreeView
   const treeView = vscode.window.createTreeView('pickleJar.stepDefinitions', {
     treeDataProvider: provider,
     showCollapseAll: true
   });
 
-  // Update tree view message when filter changes
   provider.onDidChangeTreeData(() => {
     treeView.message = provider.message;
   });
 
-  // Register commands
-  const insertStepCommand = vscode.commands.registerCommand(
-    'pickleJar.insertStep',
-    async (stepDef) => {
-      await insertionHandler.insertStepDefinition(stepDef);
-    }
-  );
+  watcher.activate(configManager.getStepDefinitionPatterns(), () => provider.refresh());
 
-  const refreshCommand = vscode.commands.registerCommand(
-    'pickleJar.refresh',
-    async () => {
+  context.subscriptions.push(
+    treeView,
+    vscode.commands.registerCommand('pickleJar.insertStep', (s) => insertionHandler.insertStepDefinition(s)),
+    vscode.commands.registerCommand('pickleJar.refresh', async () => {
       scanner.clearCache();
       await provider.refresh();
       vscode.window.showInformationMessage('Pickle Jar: Step definitions refreshed');
-    }
-  );
-
-  const searchCommand = vscode.commands.registerCommand(
-    'pickleJar.search',
-    async () => {
-      const currentFilter = provider.getFilter();
-      const searchTerm = await vscode.window.showInputBox({
-        prompt: 'Search step definitions (leave empty to clear filter)',
-        placeHolder: 'Type to filter step definitions...',
-        value: currentFilter,
-        validateInput: (value) => {
-          // Update the tree in real-time as user types
-          if (value === '') {
-            provider.clearFilter();
-          } else {
-            provider.setFilter(value);
-          }
-          return null; // No validation errors
-        }
-      });
-
-      // Final update when user presses Enter or cancels
-      if (searchTerm !== undefined) {
-        if (searchTerm === '') {
-          provider.clearFilter();
-        } else {
-          provider.setFilter(searchTerm);
-        }
-      }
-    }
-  );
-
-  const clearSearchCommand = vscode.commands.registerCommand(
-    'pickleJar.clearSearch',
-    () => {
+    }),
+    vscode.commands.registerCommand('pickleJar.search', () => searchCommand.execute()),
+    vscode.commands.registerCommand('pickleJar.clearSearch', () => {
       provider.clearFilter();
       vscode.window.showInformationMessage('Pickle Jar: Search filter cleared');
-    }
-  );
-
-  const goToDefinitionCommand = vscode.commands.registerCommand(
-    'pickleJar.goToDefinition',
-    async (item) => {
-      try {
-        // When invoked from context menu, we receive a StepDefinitionItem
-        // When invoked programmatically, we receive a StepDefinition
-        // Extract the actual StepDefinition
-        const stepDef = item.stepDefinition || item;
-
-        if (!stepDef || !stepDef.filePath) {
-          vscode.window.showErrorMessage('Invalid step definition');
-          return;
-        }
-
-        const uri = vscode.Uri.file(stepDef.filePath);
-        const document = await vscode.workspace.openTextDocument(uri);
-        const editor = await vscode.window.showTextDocument(document);
-
-        // Navigate to the specific line
-        const lineNumber = stepDef.lineNumber - 1; // VSCode uses 0-based line numbers
-        const position = new vscode.Position(lineNumber, 0);
-        editor.selection = new vscode.Selection(position, position);
-        editor.revealRange(
-          new vscode.Range(position, position),
-          vscode.TextEditorRevealType.InCenter
-        );
-      } catch (error) {
-        vscode.window.showErrorMessage(`Failed to open file: ${error}`);
-      }
-    }
-  );
-
-  // Start file watching
-  const patterns = configManager.getStepDefinitionPatterns();
-  watcher.activate(patterns, async () => {
-    await provider.refresh();
-  });
-
-  // Listen for configuration changes
-  const configListener = configManager.onConfigurationChanged(async () => {
-    // Restart file watcher with new patterns
-    watcher.dispose();
-    const newPatterns = configManager.getStepDefinitionPatterns();
-    watcher.activate(newPatterns, async () => {
+    }),
+    vscode.commands.registerCommand('pickleJar.goToDefinition', (item) => goToDefinition.execute(item)),
+    watcher,
+    configManager.onConfigurationChanged(async () => {
+      watcher.dispose();
+      watcher.activate(configManager.getStepDefinitionPatterns(), () => provider.refresh());
       await provider.refresh();
-    });
+    }),
+    insertionHandler
+  );
 
-    // Refresh tree view
-    await provider.refresh();
-  });
-
-  // Initial scan
   provider.refresh().catch(error => {
     console.error('[Pickle Jar] Error during initial scan:', error);
   });
-
-  // Register disposables
-  context.subscriptions.push(
-    treeView,
-    insertStepCommand,
-    refreshCommand,
-    searchCommand,
-    clearSearchCommand,
-    goToDefinitionCommand,
-    watcher,
-    configListener
-  );
 }
 
-export function deactivate() {
-  console.log('Pickle Jar extension is now deactivated');
-}
+export function deactivate() {}
